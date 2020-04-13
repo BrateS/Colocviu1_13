@@ -12,10 +12,13 @@
         <activity android:name=".Colocviu1_13MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="action" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Colocviu1_13SecondaryActivity" />
+
+        <service android:name=".Colocviu1_13Service" />
     </application>
 
 </manifest>

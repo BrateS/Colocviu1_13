@@ -1,18 +1,27 @@
 package ro.pub.cs.systems.eim.lab03.colocviu1_13;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Colocviu1_13MainActivity extends AppCompatActivity {
     private Button northButton, southButton, eastButton, westButton, navigateButton;
     private TextView pressedButtons;
     private String pressedTextSave = "pressed";
     private String tag = "colocviu";
+    int clicked = 0;
+    StartedServiceBroadcastReceiver startedServiceBroadcastReceiver;
+    IntentFilter startedServiceIntentFilter;
 
     private ButtonClickListener buttonClickListener = new ButtonClickListener();
     private class ButtonClickListener implements View.OnClickListener {
@@ -22,20 +31,43 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
             switch(view.getId()) {
                 case R.id.button_north:
                     pressedButtons.setText(pressedButtons.getText() + ", " + "North");
+                    clicked++;
                     break;
                 case R.id.button_east:
                     pressedButtons.setText(pressedButtons.getText() + ", " + "East");
+                    clicked++;
                     break;
                 case R.id.button_west:
                     pressedButtons.setText(pressedButtons.getText() + ", " + "West");
+                    clicked++;
                     break;
                 case R.id.button_south:
                     pressedButtons.setText(pressedButtons.getText() + ", " + "South");
+                    clicked++;
                     break;
                 case R.id.button_navigate:
+                    Intent intent = new Intent(getApplicationContext(), Colocviu1_13SecondaryActivity.class);
+                    intent.putExtra("text", pressedButtons.getText().toString());
+                    pressedButtons.setText("");
+                    startActivityForResult(intent, 69);
                     break;
             }
+
+            if(clicked == 4){
+                Log.d(tag, "Service called.");
+                clicked = 0;
+                Intent intent = new Intent(getApplicationContext(), Colocviu1_13Service.class);
+                intent.putExtra("text", pressedButtons.getText().toString());
+                getApplicationContext().startService(intent);
+                pressedButtons.setText("");
+            }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Toast.makeText(getApplicationContext(),"Returned with " + resultCode,Toast. LENGTH_SHORT).show();
     }
 
     @Override
@@ -64,6 +96,11 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
         } else {
             pressedButtons.setText("");
         }
+
+
+        startedServiceBroadcastReceiver = new StartedServiceBroadcastReceiver();
+        startedServiceIntentFilter = new IntentFilter();
+        startedServiceIntentFilter.addAction("action");
     }
 
     @Override
@@ -103,11 +140,13 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        registerReceiver(startedServiceBroadcastReceiver, startedServiceIntentFilter);
         Log.d(tag, "onResume() method was invoked");
     }
 
     @Override
     public void onPause() {
+        unregisterReceiver(startedServiceBroadcastReceiver);
         super.onPause();
         Log.d(tag, "onPause() method was invoked");
     }
@@ -124,5 +163,17 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
         Log.d(tag, "onDestroy() method was invoked");
     }
 
+}
+
+class StartedServiceBroadcastReceiver extends BroadcastReceiver {
+    private String tag = "colocviu";
+
+    public StartedServiceBroadcastReceiver() {
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.d(tag, "Received " + intent.getStringExtra("text"));
+    }
 }
 
